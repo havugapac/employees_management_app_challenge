@@ -1,8 +1,9 @@
 import { Controller, Param, Patch, Post } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
-import { ApiOkResponse, ApiOperation, ApiConflictResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiConflictResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('attendance')
+@ApiTags('Attendance')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 

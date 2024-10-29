@@ -5,10 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { configure } from './_grobal_config/config/app.config';
 
 async function bootstrap() {
-  // const app = await NestFactory.create(AppModule);
-  // await app.listen(3000);
-
-  const app = await NestFactory.create(AppModule, {
+ const app = await NestFactory.create(AppModule, {
     rawBody: true,
   });
 

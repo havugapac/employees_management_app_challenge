@@ -8,7 +8,7 @@ export class Attendance {
     
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
-  user: Number; 
+  user: number; 
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   arrival_time: Date;

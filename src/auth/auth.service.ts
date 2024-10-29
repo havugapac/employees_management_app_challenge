@@ -20,9 +20,10 @@ import {
   LoginUserDto,
   VerifyUserDto,
 } from './dto';
-//   import { JwtPayload } from './interfaces';
 import { Role as ERole } from './enum/role.enum';
 import { Role } from './entities/role.entity';
+import { EmailsService } from 'src/emails/emails.service';
+import { JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -35,6 +36,7 @@ export class AuthService {
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
+    private readonly mail: EmailsService,
   ) {}
 
   public generateToken(
@@ -53,6 +55,32 @@ export class AuthService {
         token,
       },
     };
+  }
+
+  private async sendEmail(
+    user: User,
+    token: { data: { user: User; token: string } } | string,
+  ) {
+    const recipient = await this.userRepository.findOne({ where: { id: user.id } });
+    const employee = await this.employeeRepository.findOne({
+      where: { user: recipient.id },
+    });
+    const resetPasswordUrl = `http://localhost:${this.config.get(
+      'port',
+    )}/api/v1/auth/resetPassword?token=${token}`;
+
+    const result = await this.mail.sendMail(
+      `${user.email}`,
+      'Reset password',
+      `"No Reply" <${this.config.get('mail').from}>`,
+      {
+        username: `${employee.first_name} ${employee.last_name}`,
+        verificationUrl: resetPasswordUrl,
+      },
+      './forgotPassword.template.hbs',
+      [],
+    );
+    return result;
   }
 
   async createUser(dto: CreateUserDto) {
@@ -113,31 +141,37 @@ export class AuthService {
     return user.id
   }
 
-  // async verifyUserOnReset(dto: VerifyUserDto) {
-  //   try {
-  //     const payload: JwtPayload = this.jwtService.verify(dto.token, {
-  //       secret: this.config.get('jwt').secret,
-  //     });
-  //     const user = await this.userRepository.findOne({
-  //       where: { email: payload.email },
-  //     });
-  //     if (!user) throw new NotFoundException('User not found');
-  //     return this.generateToken(user);
-  //   } catch (error) {
-  //     throw new BadRequestException('Invalid or expired token');
-  //   }
-  // }
+  async EmailForgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
 
-  // async authenticateUser(dto: AuthenticateDto) {
-  //   const user = await this.userRepository.findOne({
-  //     where: {
-  //       clientId: dto.clientId,
-  //       clientSecret: dto.clientSecret,
-  //     },
-  //   });
-  //   if (!user) {
-  //     return null;
-  //   }
-  //   return { userId: user.id };
-  // }
+    if (!user) throw new NotFoundException('User not found');
+    const token = this.generateToken(user);
+    const message = this.sendEmail(user, token);
+    return {
+      data: {
+        message,
+        user,
+      },
+    };
+  }
+
+  async verifyUserOnReset(dto: VerifyUserDto) {
+    try {
+      const payload: JwtPayload = this.jwtService.verify(dto.token, {
+        secret: this.config.get('jwt').secret,
+      });
+      const user = await this.userRepository.findOne({
+        where: { email: payload.email },
+      });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return this.generateToken(user);
+    } catch (error) {
+      console.log({ error });
+      throw new BadRequestException('Invalid token');
+    }
+  }
 }

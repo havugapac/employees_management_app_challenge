@@ -4,12 +4,16 @@ import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Employee } from './entities/employee.entity';
+import { PasswordResetDto } from './dto/password-reset-dto.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   findAll() {
@@ -32,7 +36,9 @@ export class EmployeesService {
   }
   
 
-  remove(id: number) {
-    return `This action removes a #${id} employee`;
+  async passwordReset(id: number, dto: PasswordResetDto) {
+    const password = await bcrypt.hash(dto.password, 8);
+    await this.userRepository.update(id, { password });
+    return 'password successfully reset';
   }
 }

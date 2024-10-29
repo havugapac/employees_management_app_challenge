@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as argon from 'argon2';
-import { Role } from 'src/auth/entities/role.entity';
-import { User } from 'src/auth/entities/user.entity';
-import { Role as ERole } from 'src/auth/enum/role.enum';
+import { Role } from '../auth/entities/role.entity';
+import { Role as RoleEnum } from '../auth/enum/role.enum';
+import { User } from '../auth/entities/user.entity';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
-export class AdminRolesSeeder {
+export class RoleSeederService implements OnModuleInit {
   constructor(
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
@@ -15,37 +15,34 @@ export class AdminRolesSeeder {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async seed() {
-    const roles = [
-      { name: ERole.ADMIN },
-      { name: ERole.EMPLOYEE },
-    ];
-
-    for (const roleData of roles) {
-      const roleExists = await this.roleRepository.findOne({
-        where: { name: roleData.name },
-      });
+  async seedRoles() {
+    const roles = Object.values(RoleEnum) as RoleEnum[];
+    for (const roleName of roles) {
+      const roleExists = await this.roleRepository.findOne({ where: { name: roleName } });
       if (!roleExists) {
-        const role = this.roleRepository.create(roleData);
+        const role = this.roleRepository.create({ name: roleName });
         await this.roleRepository.save(role);
       }
     }
+  }
+
+  async seedAdmin() {
+    const defaultAdminEmail = 'vugapac@gmail.com';
 
     const adminRole = await this.roleRepository.findOne({
-      where: { name: ERole.ADMIN },
+      where: { name: RoleEnum.ADMIN },
     });
 
     if (!adminRole) {
       throw new Error("Admin role was not found; roles seeding might have failed.");
     }
 
-    const defaultAdminEmail = 'havugapac@gmail.com';
     const existingAdmin = await this.userRepository.findOne({
       where: { email: defaultAdminEmail },
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await argon.hash('admin@123');
+      const hashedPassword = await bcrypt.hash('admin@123', 8);
       const adminUser = this.userRepository.create({
         email: defaultAdminEmail,
         password: hashedPassword,
@@ -54,9 +51,11 @@ export class AdminRolesSeeder {
       });
 
       await this.userRepository.save(adminUser);
-      console.log('Default admin user seeded successfully');
-    } else {
-      console.log('Default admin user already exists');
-    }
+  }
+}
+
+  async onModuleInit() {
+    await this.seedRoles();
+    await this.seedAdmin();
   }
 }

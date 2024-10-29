@@ -1,8 +1,14 @@
 export interface IAppConfig {
   port?: number;
-  env?: any;
   jwt?: JwtConfig;
   swaggerEnabled?: boolean;
+  mail?: {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    from: string;
+  };
 }
 
 interface JwtConfig {

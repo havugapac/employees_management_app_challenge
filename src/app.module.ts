@@ -4,13 +4,13 @@ import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { EmployeesModule } from './employees/employees.module';
-import { EmailsModule } from './emails/emails.module';
 import { ReportsModule } from './reports/reports.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { appConfig } from './_grobal_config/config/app.config';
 import { GlobalExceptionFilter } from './_grobal_config/filters/global-exception.filter';
-import { RoleSeederModule} from './seeders/role-seeder.module';
+import { RoleSeederModule} from './seeders/roles-admin-seeder.module';
 import typeorm from './_grobal_config/config/typeorm';
+import { EmailsModule } from './emails/emails.module';
 
 @Module({
   imports: [

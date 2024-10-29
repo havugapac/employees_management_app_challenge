@@ -1,26 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { UpdateEmployeeDto } from './dto/update-employee-dto.dto';
-import { ApiCreatedResponse, ApiOperation, ApiConflictResponse, ApiBody, ApiOkResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOperation, ApiConflictResponse, ApiBody, ApiOkResponse, ApiTags, ApiBearerAuth, ApiInternalServerErrorResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { PasswordResetDto } from './dto/password-reset-dto.dto';
+import { AllowRoles } from 'src/auth/decorators';
+import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { Role as ERoles } from '../auth/enum/role.enum'
 
+@ApiTags('Employees')
+@UseGuards(JwtGuard, RolesGuard)
+@AllowRoles(ERoles.EMPLOYEE)
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+@ApiInternalServerErrorResponse({ description: 'Internal server error' })
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
-
-  // @Post()
-  // create(@Body() createEmployeeDto: CreateEmployeeDto) {
-  //   return this.employeesService.create(createEmployeeDto);
-  // }
-
-  // @Get()
-  // findAll() {
-  //   return this.employeesService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.employeesService.findOne(+id);
-  // }
 
   @ApiOkResponse({ description: 'Employee Updated successfully' })
   @ApiOperation({ summary: 'Update Employee' })
@@ -34,8 +30,14 @@ export class EmployeesController {
     return await this.employeesService.updateEmployee(id, updateEmployeeDto);
   }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.employeesService.remove(+id);
-  // }
+  @ApiBody({ type: PasswordResetDto })
+  @ApiCreatedResponse({ description: 'Password successfully reset' })
+  @ApiOperation({ summary: 'User Password Reset' })
+  @ApiBody({ type: PasswordResetDto})
+  @Patch(':id')
+  async resetPassword(
+  @Param('id') id: number,
+  @Body() passwordResetDto: PasswordResetDto, ) {
+    return await this.employeesService.passwordReset(id, passwordResetDto);
+  }
 }
