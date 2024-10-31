@@ -62,15 +62,13 @@ export class AuthController {
     return result;
   }
 
-  @ApiExcludeEndpoint()
-  @ApiOkResponse({ description: 'Verify User ' })
-  @ApiBadRequestResponse({ description: 'Invalid or expired token' })
+  @ApiCreatedResponse({ description: 'Verify User ' })
+  @ApiBadRequestResponse({ description: 'Invalid  token' })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiOperation({ summary: 'User verification while reseting password' })
-  @ApiQuery({ type: VerifyUserDto })
-  @HttpCode(200)
-  @Get('resetPassword')
-  async verifyUserOnReset(@Query() dto: VerifyUserDto) {
+  @ApiBody({ type: VerifyUserDto })
+  @Post('Verify-user-to-reset-password')
+  async verifyUserOnReset(@Body() dto: VerifyUserDto) {
     const result = await this.authService.verifyUserOnReset(dto);
     return result;
   }

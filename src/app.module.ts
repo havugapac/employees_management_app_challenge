@@ -11,6 +11,7 @@ import { GlobalExceptionFilter } from './_grobal_config/filters/global-exception
 import { RoleSeederModule} from './seeders/roles-admin-seeder.module';
 import typeorm from './_grobal_config/config/typeorm';
 import { EmailsModule } from './emails/emails.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -28,7 +29,13 @@ ConfigModule.forRoot({
     EmailsModule,
     ReportsModule,
     AttendanceModule,
-    RoleSeederModule
+    RoleSeederModule,
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
   ],
   controllers: [],
   providers: [

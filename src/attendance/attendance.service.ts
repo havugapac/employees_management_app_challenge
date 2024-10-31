@@ -14,25 +14,31 @@ export class AttendanceService {
   constructor(
     @InjectRepository(Attendance)
     private readonly attendanceRepository: Repository<Attendance>,
-    @InjectRepository(Attendance)
+    @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Attendance)
+    @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
     @InjectQueue('mailQueue') private readonly mailQueue: Queue,
     private readonly config: ConfigService<IAppConfig>,
   ) {}
 
-  async recordArrival(user: number): Promise<Attendance> {
+  async recordArrival(user: User): Promise<{ message: string }> {
+
     const newAttendance = this.attendanceRepository.create({
-      user,
+      user:user.id,
     });
 
+
     const recipient = await this.userRepository.findOne({
-      where: { id: user },
+      where: { id: user.id },
     });
+
     const employee = await this.employeeRepository.findOne({
       where: { user: recipient.id },
     });
+
+    await this.attendanceRepository.save(newAttendance);
+
     await this.mailQueue.add('sendEmail', {
       email: `${recipient.email}`,
       subject: 'Entry Attendance recorded',
@@ -40,19 +46,19 @@ export class AttendanceService {
       context: {
         username: `${employee.first_name} ${employee.last_name}`,
       },
-      template: './default.template.hbs',
+      template: './attandance.template.hbs',
     });
 
-    return await this.attendanceRepository.save(newAttendance);
+    return {message: "Entry Attendance recorded successfully"};
   }
 
-  async recordDeparture(user: number): Promise<Attendance> {
+  async recordDeparture(user: User): Promise<{ message: string }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const attendanceRecord = await this.attendanceRepository.findOne({
       where: {
-        user,
+        user:user.id,
         arrival_time: MoreThanOrEqual(today),
       },
     });
@@ -66,11 +72,14 @@ export class AttendanceService {
     attendanceRecord.leave_time = new Date();
 
     const recipient = await this.userRepository.findOne({
-      where: { id: user },
+      where: { id: user.id },
     });
     const employee = await this.employeeRepository.findOne({
       where: { user: recipient.id },
     });
+
+    await this.attendanceRepository.save(attendanceRecord);
+
     await this.mailQueue.add('sendEmail', {
       email: `${recipient.email}`,
       subject: 'Exit Attendance recorded',
@@ -78,9 +87,9 @@ export class AttendanceService {
       context: {
         username: `${employee.first_name} ${employee.last_name}`,
       },
-      template: './default.template.hbs',
+      template: './attandance.template.hbs',
     });
 
-    return await this.attendanceRepository.save(attendanceRecord);
+    return {message: "Exit Attendance recorded successfully"};
   }
 }

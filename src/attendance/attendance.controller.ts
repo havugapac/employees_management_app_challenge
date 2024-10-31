@@ -1,25 +1,30 @@
-import { Controller, Param, Patch, Post } from '@nestjs/common';
+import { Controller, Patch, Post, UseGuards } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
-import { ApiOkResponse, ApiOperation, ApiConflictResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiConflictResponse, ApiTags, ApiBearerAuth, ApiCreatedResponse } from '@nestjs/swagger';
+import { GetUser } from 'src/auth/decorators';
+import { User } from 'src/auth/entities/user.entity';
+import { JwtGuard } from 'src/auth/guard/jwt.guard';
 
 @Controller('attendance')
 @ApiTags('Attendance')
+@UseGuards(JwtGuard)
+@ApiBearerAuth()
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
-  @ApiOkResponse({ description: 'Attendance Recorded successfully' })
+  @ApiCreatedResponse({ description: 'Attendance Recorded successfully' })
   @ApiOperation({ summary: 'Attendance | Arrival' })
   @ApiConflictResponse({ description: 'Unable To Record Attendance' })
-  @Post('arrive/:id')
-  async recordArrival(@Param('id') id: number) {
-    return this.attendanceService.recordArrival(id);
+  @Post('arrive')
+  async recordArrival(@GetUser()user:User) {
+    return this.attendanceService.recordArrival(user);
   }
 
   @ApiOkResponse({ description: 'Attendance Recorded successfully' })
   @ApiOperation({ summary: 'Attendance | Depart' })
   @ApiConflictResponse({ description: 'Unable To Record Attendance' })
-  @Patch('depart/:id')
-  async recordDeparture(@Param('id') id: number) {
-    return this.attendanceService.recordDeparture(id);
+  @Patch('depart')
+  async recordDeparture(@GetUser() user:User) {
+    return this.attendanceService.recordDeparture(user);
   }
 }

@@ -22,7 +22,7 @@ export function appConfig(): IAppConfig {
 
 export function configureSwagger(app: INestApplication): void {
   const API_TITLE = 'Employees-Management-App';
-  const API_DESCRIPTION = 'API Doc. forEmployees-Management-App API';
+  const API_DESCRIPTION = 'API Doc';
   const API_VERSION = '1.0';
   const SWAGGER_URL = '/swagger';
   const options = new DocumentBuilder()

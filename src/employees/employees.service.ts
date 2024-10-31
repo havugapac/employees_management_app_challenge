@@ -16,19 +16,17 @@ export class EmployeesService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  findAll() {
-    return `This action returns all employees`;
+  async getEmployees() {
+    return await this.employeeRepository.find({
+      select: ['id', 'first_name', 'last_name'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} employee`;
-  }
-
-  async updateEmployee(id: number, updateEmployeeDto: UpdateEmployeeDto): Promise<Employee> {
-    const employee = await this.employeeRepository.findOne({ where: { user: id } });
+  async updateEmployee(user: User, updateEmployeeDto: UpdateEmployeeDto): Promise<Employee> {
+    const employee = await this.employeeRepository.findOne({ where: { user: user.id } });
   
     if (!employee) {
-      throw new NotFoundException(`Employee with id ${id} not found`);
+      throw new NotFoundException(`Employee with id ${user.id} not found`);
     }
   
     const updatedEmployee = this.employeeRepository.merge(employee, updateEmployeeDto);

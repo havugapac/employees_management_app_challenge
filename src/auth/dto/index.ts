@@ -42,13 +42,13 @@ export class LoginUserDto {
   @ApiProperty({
     type: String,
     required: true,
-    default: 'christiannseko@gmail.com',
+    default: 'vugapac@gmail.com',
     description: 'User email address',
   })
   email: string;
 
   @IsNotEmpty()
-  @ApiProperty({ type: String, required: true, description: 'User password' })
+  @ApiProperty({ type: String, required: true, default: 'admin@123' })
   password: string;
 }
 
@@ -56,7 +56,7 @@ export class VerifyUserDto {
   @ApiProperty({
     type: String,
     required: true,
-    default: 'eTYtffyvytvpppn',
+    default: 'edfhdfttdadf',
     description: 'Token for user verification',
   })
   @IsString()
@@ -69,30 +69,8 @@ export class ForgotPasswordDto {
   @ApiProperty({
     type: String,
     required: true,
-    default: 'christiannseko@gmail.com',
+    default: 'vugapac@gmail.com',
     description: 'User email address for password reset',
   })
   email: string;
-}
-
-export class AuthenticateDto {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    type: String,
-    required: true,
-    default: 'Test676',
-    description: 'Client ID for authentication',
-  })
-  clientId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    type: String,
-    required: true,
-    default: 'P!oopasd',
-    description: 'Client secret for authentication',
-  })
-  clientSecret: string;
 }

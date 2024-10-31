@@ -1,16 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { UpdateEmployeeDto } from './dto/update-employee-dto.dto';
-import { ApiCreatedResponse, ApiOperation, ApiConflictResponse, ApiBody, ApiOkResponse, ApiTags, ApiBearerAuth, ApiInternalServerErrorResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOperation, ApiConflictResponse, ApiBody, ApiOkResponse, ApiTags, ApiBearerAuth, ApiInternalServerErrorResponse, ApiUnauthorizedResponse, ApiForbiddenResponse } from '@nestjs/swagger';
 import { PasswordResetDto } from './dto/password-reset-dto.dto';
-import { AllowRoles } from 'src/auth/decorators';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
-import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Role as ERoles } from '../auth/enum/role.enum'
+import { GetUser} from 'src/auth/decorators';
+import { User } from 'src/auth/entities/user.entity';
+import { GenericResponse } from 'src/_grobal_config/dto';
 
 @ApiTags('Employees')
-@UseGuards(JwtGuard, RolesGuard)
-@AllowRoles(ERoles.EMPLOYEE)
+@UseGuards(JwtGuard)
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Unauthorized' })
 @ApiInternalServerErrorResponse({ description: 'Internal server error' })
@@ -18,26 +17,36 @@ import { Role as ERoles } from '../auth/enum/role.enum'
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
+
+  @ApiOkResponse({ description: 'Employee retrieved successfully' })
+  @ApiOperation({ summary: 'Retrieve all employees' })
+  @ApiForbiddenResponse({ description: 'Access denied must be admin' })
+  @Get('')
+  async getEmployees() {
+    const result = await this.employeesService.getEmployees();
+    return new GenericResponse('employees retrieved', result);
+  }
+
   @ApiOkResponse({ description: 'Employee Updated successfully' })
   @ApiOperation({ summary: 'Update Employee' })
   @ApiConflictResponse({ description: 'Unable To Update' })
   @ApiBody({ type: UpdateEmployeeDto })
-  @Patch(':id')
+  @Patch('update-employee')
   async updateEmployee(
-    @Param('id') id: number,
+    @GetUser()user:User,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
   ) {
-    return await this.employeesService.updateEmployee(id, updateEmployeeDto);
+    return await this.employeesService.updateEmployee(user, updateEmployeeDto);
   }
 
   @ApiBody({ type: PasswordResetDto })
   @ApiCreatedResponse({ description: 'Password successfully reset' })
   @ApiOperation({ summary: 'User Password Reset' })
   @ApiBody({ type: PasswordResetDto})
-  @Patch(':id')
+  @Patch('reset-password')
   async resetPassword(
-  @Param('id') id: number,
+  @GetUser()user:User,
   @Body() passwordResetDto: PasswordResetDto, ) {
-    return await this.employeesService.passwordReset(id, passwordResetDto);
+    return await this.employeesService.passwordReset(user.id, passwordResetDto);
   }
 }

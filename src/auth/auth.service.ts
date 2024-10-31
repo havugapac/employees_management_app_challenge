@@ -14,16 +14,17 @@ import { Employee } from 'src/employees/entities/employee.entity';
 import { IAppConfig } from 'src/_grobal_config/interfaces';
 import * as bcrypt from 'bcryptjs';
 import {
-  AuthenticateDto,
   CreateUserDto,
   ForgotPasswordDto,
   LoginUserDto,
   VerifyUserDto,
 } from './dto';
+import * as crypto from 'crypto';
 import { Role as ERole } from './enum/role.enum';
 import { Role } from './entities/role.entity';
 import { EmailsService } from 'src/emails/emails.service';
 import { JwtPayload } from './interfaces';
+import { Verify } from './entities/verify.entity';
 
 @Injectable()
 export class AuthService {
@@ -36,8 +37,15 @@ export class AuthService {
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Verify) private readonly verifyRepository: Repository<Verify>,
     private readonly mail: EmailsService,
   ) {}
+
+
+  private  generateRandomNumber(){
+     const TokenId = crypto.randomBytes(5).toString('hex')
+     return TokenId
+  }
 
   public generateToken(
     user: User,
@@ -65,9 +73,27 @@ export class AuthService {
     const employee = await this.employeeRepository.findOne({
       where: { user: recipient.id },
     });
-    const resetPasswordUrl = `http://localhost:${this.config.get(
-      'port',
-    )}/api/v1/auth/resetPassword?token=${token}`;
+    
+    const isThereToken = await this.verifyRepository.findOne({
+       where:{
+         user:user.id
+       }
+    })
+
+    
+
+    if(isThereToken){
+       await this.verifyRepository.update(isThereToken.id,{token:token as string})
+    }
+
+    if(!isThereToken){
+      let verifyData= this.verifyRepository.create({
+        user:user.id,
+        token:token as string
+      })
+    await this.verifyRepository.save(verifyData)
+
+    }
 
     const result = await this.mail.sendMail(
       `${user.email}`,
@@ -75,12 +101,13 @@ export class AuthService {
       `"No Reply" <${this.config.get('mail').from}>`,
       {
         username: `${employee.first_name} ${employee.last_name}`,
-        verificationUrl: resetPasswordUrl,
+        token,
       },
       './forgotPassword.template.hbs',
       [],
     );
     return result;
+    
   }
 
   async createUser(dto: CreateUserDto) {
@@ -147,7 +174,7 @@ export class AuthService {
     });
 
     if (!user) throw new NotFoundException('User not found');
-    const token = this.generateToken(user);
+    const token = this.generateRandomNumber();
     const message = this.sendEmail(user, token);
     return {
       data: {
@@ -159,11 +186,12 @@ export class AuthService {
 
   async verifyUserOnReset(dto: VerifyUserDto) {
     try {
-      const payload: JwtPayload = this.jwtService.verify(dto.token, {
-        secret: this.config.get('jwt').secret,
-      });
+      const token = await this.verifyRepository.findOne({where:{ token: dto.token}})
+      if(!token){
+        throw new BadRequestException('Invalid token');
+      }
       const user = await this.userRepository.findOne({
-        where: { email: payload.email },
+        where: { id: token.user },
       });
       if (!user) {
         throw new NotFoundException('User not found');

@@ -11,10 +11,10 @@ export class QueueMailsService extends WorkerHost {
   }
 
   async process(job: Job) {
-    return this.handleSendEmail(job);
+    return this.handleEmail(job);
   }
 
-  private async handleSendEmail(job: Job) {
+  private async handleEmail(job: Job) {
     const { email, subject, from, context, template } = job.data;
     await this.emailsService.sendMail(email, subject, from, context, template);
   }

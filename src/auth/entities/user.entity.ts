@@ -6,6 +6,7 @@ import { Role } from './role.entity';
 import { Employee } from 'src/employees/entities/employee.entity';
 import { AbstractEntity } from "../../_grobal_config/entities/abstract.entity";
 import { Attendance } from 'src/attendance/entities/attendance.entity';
+import { Verify } from './verify.entity';
 
 @Entity('users')
 export class User extends AbstractEntity {
@@ -36,4 +37,7 @@ export class User extends AbstractEntity {
 
   @OneToMany(() => Attendance, (attendance) => attendance.user)
   attendances: Attendance[];
+
+  @OneToOne(() => Verify, (verify) => verify.user)
+  verifications: Verify;
 }

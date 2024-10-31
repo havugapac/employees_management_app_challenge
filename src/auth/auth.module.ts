@@ -8,10 +8,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Employee } from 'src/employees/entities/employee.entity';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
+import { Verify } from './entities/verify.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Employee, Role]),
+    TypeOrmModule.forFeature([User, Employee, Role,Verify]),
     JwtModule.register({}),
     ConfigModule,
   ],

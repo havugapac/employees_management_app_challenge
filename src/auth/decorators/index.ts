@@ -3,11 +3,9 @@ import {
     ExecutionContext,
     SetMetadata,
   } from '@nestjs/common';
-  
-  
-  export const ROLES_KEY = 'roles';
-  
-  export const AllowRoles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
+
+  export const IS_ADMIN_KEY = 'isAdmin';
+  export const IsAdmin = () => SetMetadata(IS_ADMIN_KEY, true);
   
   export const GetUser = createParamDecorator(
     (_data, ctx: ExecutionContext) => {
@@ -15,4 +13,5 @@ import {
       return req.user;
     },
   );
+ 
   

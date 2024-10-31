@@ -2,16 +2,15 @@ import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { ApiTags, ApiBearerAuth, ApiUnauthorizedResponse, ApiInternalServerErrorResponse } from '@nestjs/swagger';
-import { AllowRoles } from 'src/auth/decorators';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
-import { RolesGuard } from 'src/auth/guard/roles.guard';
 import * as fs from 'fs';
-import { Role as ERoles } from '../auth/enum/role.enum'
+import { AdminGuard } from 'src/auth/guard/isAdmin.guard';
+import { IsAdmin } from 'src/auth/decorators';
 
 @Controller('reports')
 @ApiTags('Reports')
-@UseGuards(JwtGuard, RolesGuard)
-@AllowRoles(ERoles.ADMIN)
+@UseGuards(JwtGuard, AdminGuard)
+@IsAdmin()
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Unauthorized' })
 @ApiInternalServerErrorResponse({ description: 'Internal server error' })
@@ -21,7 +20,7 @@ export class ReportsController {
   @Get('export/excel')
   async downloadExcel(@Res() res: Response) {
     const { workbook, filename } =
-      await this.ReportsService .generateAttendanceReport();
+      await this.ReportsService .generateExcelAttendanceReport();
     res.set({
       'Content-Type':
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -32,7 +31,7 @@ export class ReportsController {
   @Get('export/pdf')
   async downloadPdf(@Res() res: Response) {
     const { filename } =
-      await this.ReportsService .generateAttendanceReportPDF();
+      await this.ReportsService .generatePdfAttendanceReport();
 
     res.set({
       'Content-Type': 'application/pdf',
