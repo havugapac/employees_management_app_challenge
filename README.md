@@ -5,14 +5,23 @@ An Employee Management System built with Node.js and NestJS for handling employe
 ## Table of Contents
 
 Project Overview
+
 Prerequisites
+
 Installation
+
 Configuration
+
 Database Setup
+
 Running the Application
+
 Usage and API Documentation
+
 Testing
+
 Default Credentials
+
 Technologies Used
 
 # Project Overview
@@ -23,8 +32,11 @@ This Employee Management System is designed to streamline the management of empl
 # Prerequisites
 
 Ensure you have the following installed:
+
 Node.js: v22 or higher
+
 Redis: v6.2.0 or higher (for handling mail queues)
+
 MySQL: Latest version recommended
 
 
@@ -84,21 +96,28 @@ Replace <port> with the actual port your application is running on (default is u
 # Testing
 
 Run unit tests with the following command:
+
 npm run test
 
 
 # Default Credentials
 
 The application comes with a default user for initial login:
+
 Email: vugapac@gmail.com
+
 Password: admin@123
 
 
 # Technologies Used
 
 NestJS for backend framework
+
 TypeORM for database ORM
+
 MySQL for the relational database
+
 Redis for managing mail queues
+
 Swagger for API documentation
 
